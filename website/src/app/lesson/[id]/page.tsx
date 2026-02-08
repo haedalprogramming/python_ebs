@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import fs from "fs";
@@ -14,6 +15,32 @@ export async function generateStaticParams() {
   return getAllLessons().map(lesson => ({
     id: String(lesson.id),
   }));
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const result = getLessonById(parseInt(id, 10));
+
+  if (!result) {
+    return { title: "차시를 찾을 수 없습니다" };
+  }
+
+  const { part, lesson } = result;
+  const title = `${lesson.id}차시. ${lesson.title}`;
+  const description = `${lesson.description} - ${part.title} | 해달에듀 파이썬`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title: `${title} | 해달에듀 파이썬`,
+      description,
+      url: `https://python.haedal.io/lesson/${lesson.id}`,
+    },
+    alternates: {
+      canonical: `https://python.haedal.io/lesson/${lesson.id}`,
+    },
+  };
 }
 
 async function getCodeContents(codes: {[key: string]: string | undefined}): Promise<Record<string, string>> {
